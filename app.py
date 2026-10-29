@@ -301,10 +301,12 @@ with st.expander("About the original experiment", expanded=False):
     chronological holdout period and repeats masks across several random seeds.
     """)
 
-tab1, tab2, tab3 = st.tabs([
+tab1, tab2, tab3, tab4 = st.tabs([
     "Historical results",
     "Run stronger evaluation",
-    "Dataset & limitations"
+    "Dataset & limitations",
+    "Model Reconstruction"
+
 ])
 
 with tab1:
@@ -473,3 +475,140 @@ with tab3:
 
 st.divider()
 st.caption("WattWise AI • College research prototype • Keep the original CSV files unchanged.")
+
+with tab4:
+    st.markdown("### Recover missing electricity readings")
+    st.write(
+        "Upload a CSV containing timestamps and hourly power readings. "
+        "Choose a trained model to estimate missing values."
+    )
+
+    try:
+        random_model, block_model, model_config = load_wattwise_models()
+        st.success("Saved models loaded successfully.")
+    except Exception as e:
+        st.error(f"Could not load the saved models: {e}")
+        st.stop()
+
+    uploaded_reconstruction = st.file_uploader(
+        "Upload hourly electricity data (CSV)",
+        type=["csv"],
+        key="reconstruction_upload"
+    )
+
+    if uploaded_reconstruction is not None:
+        reconstruction_df = pd.read_csv(uploaded_reconstruction)
+
+        timestamp_options = [
+            c for c in reconstruction_df.columns
+            if str(c).strip().lower() in [
+                "timestamp", "datetime", "date_time", "date", "time"
+            ]
+        ]
+        power_options = [
+            c for c in reconstruction_df.columns
+            if str(c).strip().lower() in [
+                "power_kw", "power", "global_active_power",
+                "original_power_kw", "power_with_anomalies_kw"
+            ]
+        ]
+
+        if not timestamp_options or not power_options:
+            st.error(
+                "Your CSV must contain a timestamp column and a power column, "
+                "such as timestamp and original_power_kw."
+            )
+        else:
+            timestamp_col = st.selectbox(
+                "Timestamp column", timestamp_options
+            )
+            power_col = st.selectbox(
+                "Power column", power_options
+            )
+            chosen_model = st.selectbox(
+                "Choose reconstruction model",
+                ["Random-trained Random Forest", "Block-trained Random Forest"]
+            )
+
+            if st.button("Reconstruct missing readings", type="primary"):
+                work = reconstruction_df[[timestamp_col, power_col]].copy()
+                work.columns = ["timestamp", "observed_power_kw"]
+                work["timestamp"] = pd.to_datetime(
+                    work["timestamp"], errors="coerce"
+                )
+                work["observed_power_kw"] = pd.to_numeric(
+                    work["observed_power_kw"], errors="coerce"
+                )
+                work = (
+                    work.dropna(subset=["timestamp"])
+                    .sort_values("timestamp")
+                    .drop_duplicates("timestamp")
+                    .reset_index(drop=True)
+                )
+
+                missing_mask = work["observed_power_kw"].isna()
+
+                if len(work) < 169:
+                    st.error(
+                        "Please provide at least 169 hourly rows for the "
+                        "weekly lag features used by this model."
+                    )
+                elif not missing_mask.any():
+                    st.info(
+                        "No missing power readings were found in the selected column."
+                    )
+                else:
+                    # Build features using observed values only, never hidden truth.
+                    series = pd.Series(
+                        work["observed_power_kw"].to_numpy(dtype=float),
+                        index=pd.DatetimeIndex(work["timestamp"])
+                    )
+                    feature_values = series.interpolate(
+                        limit_direction="both"
+                    ).ffill().bfill()
+
+                    features = pd.DataFrame(index=series.index)
+                    features["hour"] = series.index.hour
+                    features["day_of_week"] = series.index.dayofweek
+                    features["month"] = series.index.month
+                    features["lag_1"] = feature_values.shift(1)
+                    features["lag_24"] = feature_values.shift(24)
+                    features["lag_168"] = feature_values.shift(168)
+                    features = features.bfill().ffill()
+
+                    selected_model = (
+                        random_model
+                        if chosen_model == "Random-trained Random Forest"
+                        else block_model
+                    )
+
+                    predictions = selected_model.predict(
+                        features.loc[missing_mask].to_numpy()
+                    )
+
+                    work["reconstructed_power_kw"] = work[
+                        "observed_power_kw"
+                    ]
+                    work.loc[
+                        missing_mask, "reconstructed_power_kw"
+                    ] = predictions
+
+                    st.success(
+                        f"Reconstructed {int(missing_mask.sum())} missing readings."
+                    )
+                    st.caption(
+                        "Existing readings are preserved. Reconstructed values "
+                        "are model estimates, not actual measured consumption."
+                    )
+                    st.dataframe(
+                        work.loc[missing_mask],
+                        use_container_width=True,
+                        hide_index=True
+                    )
+
+                    st.download_button(
+                        "Download reconstructed CSV",
+                        data=work.to_csv(index=False).encode("utf-8"),
+                        file_name="WattWise_reconstructed_readings.csv",
+                        mime="text/csv"
+                    )
