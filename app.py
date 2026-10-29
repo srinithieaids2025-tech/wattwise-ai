@@ -24,8 +24,15 @@ HISTORICAL_RESULTS = pd.DataFrame([
     "Threshold retention (%)", "Isolation Forest retention (%)"
 ])
 
-SCENARIOS = ["Random 10%", "3-hour blocks", "6-hour blocks", "12-hour blocks"]
+@st.cache_resource
+def load_wattwise_models():
+    random_model = joblib.load("wattwise_random_trained_rf.joblib")
+    block_model = joblib.load("wattwise_block_trained_rf.joblib")
 
+    with open("wattwise_model_config.json", "r") as f:
+        config = json.load(f)
+
+    return random_model, block_model, config
 
 def parse_dataset(uploaded):
     df = pd.read_csv(uploaded)
