@@ -24,6 +24,7 @@ HISTORICAL_RESULTS = pd.DataFrame([
     "Threshold retention (%)", "Isolation Forest retention (%)"
 ])
 
+SCENARIOS = ["Random 10%", "3-hour blocks", "6-hour blocks", "12-hour blocks"]
 @st.cache_resource
 def load_wattwise_models():
     random_model = joblib.load("wattwise_random_trained_rf.joblib")
