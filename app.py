@@ -547,21 +547,24 @@ with tab4:
 
                 missing_mask = work["observed_power_kw"].isna()
 
-                if len(work) < 169:
+                                if len(work) < 169:
                     st.error(
                         "Please provide at least 169 hourly rows for the "
                         "weekly lag features used by this model."
                     )
+
                 elif not missing_mask.any():
                     st.info(
                         "No missing power readings were found in the selected column."
                     )
+
                 else:
-                    # Build features using observed values only, never hidden truth.
+                    # Build features using observed values only.
                     series = pd.Series(
                         work["observed_power_kw"].to_numpy(dtype=float),
                         index=pd.DatetimeIndex(work["timestamp"])
                     )
+
                     feature_values = series.interpolate(
                         limit_direction="both"
                     ).ffill().bfill()
@@ -580,17 +583,19 @@ with tab4:
                         if chosen_model == "Random-trained Random Forest"
                         else block_model
                     )
+
                     missing_positions = np.flatnonzero(
-                         missing_mask.to_numpy()
-                     )
+                        missing_mask.to_numpy()
+                    )
 
                     predictions = selected_model.predict(
-                         features.iloc[missing_positions].to_numpy()
-                     )
-   
-                    work["reconstructed_power_kw"] = work[
-                        "observed_power_kw"
-                    ]
+                        features.iloc[missing_positions].to_numpy()
+                    )
+
+                    work["reconstructed_power_kw"] = (
+                        work["observed_power_kw"]
+                    )
+
                     work.loc[
                         missing_mask, "reconstructed_power_kw"
                     ] = predictions
@@ -598,13 +603,12 @@ with tab4:
                     st.success(
                         f"Reconstructed {int(missing_mask.sum())} missing readings."
                     )
-                    st.caption(    st.stop()
 
-    uploaded_reconstruction = st.file_uploader(
-        "
+                    st.caption(
                         "Existing readings are preserved. Reconstructed values "
                         "are model estimates, not actual measured consumption."
                     )
+
                     st.dataframe(
                         work.loc[missing_mask],
                         use_container_width=True,
@@ -616,4 +620,8 @@ with tab4:
                         data=work.to_csv(index=False).encode("utf-8"),
                         file_name="WattWise_reconstructed_readings.csv",
                         mime="text/csv"
+                    )
+
+ 
+       
                     )
