@@ -489,10 +489,7 @@ with tab4:
         st.success("Saved models loaded successfully.")
     except Exception as e:
         st.error(f"Could not load the saved models: {e}")
-        st.stop()
-
-    uploaded_reconstruction = st.file_uploader(
-        "Upload hourly electricity data (CSV)",
+    Upload hourly electricity data (CSV)",
         type=["csv"],
         key="reconstruction_upload"
     )
@@ -582,11 +579,14 @@ with tab4:
                         if chosen_model == "Random-trained Random Forest"
                         else block_model
                     )
+                    missing_positions = np.flatnonzero(
+                         missing_mask.to_numpy()
+                     )
 
                     predictions = selected_model.predict(
-                        features.loc[missing_mask].to_numpy()
-                    )
-
+                         features.iloc[missing_positions].to_numpy()
+                     )
+   
                     work["reconstructed_power_kw"] = work[
                         "observed_power_kw"
                     ]
@@ -597,7 +597,10 @@ with tab4:
                     st.success(
                         f"Reconstructed {int(missing_mask.sum())} missing readings."
                     )
-                    st.caption(
+                    st.caption(    st.stop()
+
+    uploaded_reconstruction = st.file_uploader(
+        "
                         "Existing readings are preserved. Reconstructed values "
                         "are model estimates, not actual measured consumption."
                     )
