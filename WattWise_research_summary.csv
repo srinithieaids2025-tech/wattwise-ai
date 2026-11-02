@@ -1,0 +1,4 @@
+Gap length (hours),Linear MAE mean,Linear MAE SD,Random Forest MAE mean,Random Forest MAE SD,Linear RMSE mean,Linear RMSE SD,Random Forest RMSE mean,Random Forest RMSE SD
+3,0.5293,0.072,0.5638,0.0848,0.7429,0.0917,0.7895,0.1606
+6,0.7082,0.1236,0.5458,0.0908,0.9425,0.1567,0.7653,0.1493
+12,0.8767,0.2228,0.5769,0.0952,1.1819,0.2208,0.8122,0.1645
