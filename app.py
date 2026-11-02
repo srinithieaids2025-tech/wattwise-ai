@@ -484,16 +484,16 @@ with tab4:
         "Choose a trained model to estimate missing values."
     )
 
-       try:
-        random_model, block_model, model_config = load_wattwise_models()
-        st.success("Saved models loaded successfully.")
+    try:
+         random_model, block_model, model_config = load_wattwise_models()
+         st.success("Saved models loaded successfully.")
     except Exception as e:
         st.error(f"Could not load the saved models: {e}")
 
     uploaded_reconstruction = st.file_uploader(
-        "Upload hourly electricity data (CSV)",
-        type=["csv"],
-        key="reconstruction_upload"
+         "Upload hourly electricity data (CSV)",
+         type=["csv"],
+         key="reconstruction_upload"
     )
     if uploaded_reconstruction is not None:
         reconstruction_df = pd.read_csv(uploaded_reconstruction)
