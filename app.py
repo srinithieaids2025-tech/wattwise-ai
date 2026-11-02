@@ -163,9 +163,10 @@ def calculate_metrics(y_true, y_pred):
 
 
 def run_one_experiment(data, scenario, seed, test_fraction=0.30):
-    n = len(data)
+       n = len(data)
     split = int(n * (1 - test_fraction))
-    if split < 169 or n - split < 50:
+
+    if split < 169 or (n - split) < 50:
         raise ValueError(
             "Dataset is too short for a 70/30 time split with weekly lag features."
         )
