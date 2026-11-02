@@ -487,13 +487,14 @@ with tab4:
     try:
         random_model, block_model, model_config = load_wattwise_models()
         st.success("Saved models loaded successfully.")
-    except Exception as e:
+        except Exception as e:
         st.error(f"Could not load the saved models: {e}")
-    Upload hourly electricity data (CSV)",
+
+    uploaded_reconstruction = st.file_uploader(
+        "Upload hourly electricity data (CSV)",
         type=["csv"],
         key="reconstruction_upload"
     )
-
     if uploaded_reconstruction is not None:
         reconstruction_df = pd.read_csv(uploaded_reconstruction)
 
