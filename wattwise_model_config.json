@@ -1,0 +1,33 @@
+{
+    "project": "WattWise AI",
+    "task": "Historical electricity-reading reconstruction",
+    "target": "power_kw",
+    "features": [
+        "hour",
+        "day_of_week",
+        "month",
+        "lag_1",
+        "lag_24",
+        "lag_168"
+    ],
+    "random_trained_model": {
+        "file": "wattwise_random_trained_rf.joblib",
+        "n_estimators": 150,
+        "max_depth": 12,
+        "min_samples_leaf": 3,
+        "random_state": 42
+    },
+    "block_trained_model": {
+        "file": "wattwise_block_trained_rf.joblib",
+        "n_estimators": 150,
+        "max_depth": 12,
+        "min_samples_leaf": 3,
+        "random_state": 42
+    },
+    "limitations": [
+        "Evaluated on one chronological test period",
+        "Synthetic missing-data patterns",
+        "Not a real-time forecasting model",
+        "Reconstruction quality depends on missingness pattern"
+    ]
+}
