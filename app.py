@@ -166,7 +166,9 @@ def run_one_experiment(data, scenario, seed, test_fraction=0.30):
     n = len(data)
     split = int(n * (1 - test_fraction))
     if split < 169 or n - split < 50:
-        raise ValueError("Dataset is too short for a 70/30 time split with weekly lag features.")
+        raise ValueError(
+            "Dataset is too short for a 70/30 time split with weekly lag features."
+        )
 
     truth = data["power"].astype(float).copy()
     baseline = data["baseline_power"].astype(float).copy()
