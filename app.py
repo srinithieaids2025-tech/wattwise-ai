@@ -150,15 +150,6 @@ BASE_DIR = Path(__file__).resolve().parent
 # SUPABASE CONFIGURATION
 # ========================================================
 
-try:
-    supabase = create_client(
-        st.secrets["SUPABASE_URL"],
-        st.secrets["SUPABASE_KEY"]
-    )
-except Exception as e:
-    st.error(f"Could not connect to Supabase: {e}")
-    st.stop()
-
 
 # ========================================================
 # SESSION INITIALIZATION
