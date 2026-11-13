@@ -29,10 +29,7 @@ def get_config_value(name):
     value = os.getenv(name)
     if value:
         return value
-    try:
-        return st.secrets[name]
-    except Exception:
-        return None
+    return None
 
 
 SUPABASE_URL = get_config_value("SUPABASE_URL")
