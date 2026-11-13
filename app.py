@@ -132,7 +132,7 @@ st.sidebar.success(
     f"Logged in: {st.session_state['wattwise_user']['email']}"
 )
 
-if st.sidebar.button("Logout"):
+if st.sidebar.button("Logout", key="wattwise_logout_button"):
     try:
         supabase.auth.sign_out()
     finally:
